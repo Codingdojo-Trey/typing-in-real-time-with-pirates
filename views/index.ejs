@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <link href='http://fonts.googleapis.com/css?family=Gloria+Hallelujah' rel='stylesheet' type='text/css'>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src='/socket.io/socket.io.js'></script>
+    <script type="text/javascript">
+    	$(document).ready(function(){
+    		io = io.connect();
+
+    		var name = prompt('argh, what is yer name?!');
+    		io.emit("thar_be_a_new_user", {name: name});
+    		//make this box for the user who is signed on.  This is their input field
+    		$('#pirates').append("<div class='box'><h2>"+ name +"</h2><textarea id='myText' placeholder='SCRAWL YOUR GIBBERISH, OR DIE!'></textarea></div>");
+
+    		//now we begin the functional part of the app, aka the business:
+    		io.on('current_list_o_pirates', function(data){
+    			for(var x in data){
+    				$('#pirates').append("<div class='box'><h2>"+ data[x].name +"</h2><p id='"+ x +"'>"+ data[x].text+"</p></div>");
+    			}
+    		})
+
+    		io.on('argh_new_pirate_aboard', function(data){
+    			$('#pirates').append("<div class='box'><h2>"+ data.name +"</h2><p id='"+ data.id +"'></p></div>");
+    		})
+
+    		// We have to use .on here because the textarea is dynmically generated, IE no there on pageload!
+    		$('#pirates').on('keyup', '#myText', function(){
+    			io.emit("thar_be_scribblin", {scribbles: $(this).val()});
+    		})
+
+    		io.on('update_yer_scribbles', function(data){
+    			$("#"+data.id).text(data.text);
+    		})
+
+    		io.on('someone_walked_the_plank', function(data){
+    			$('#'+data.id).parent().fadeOut(2000, function(){
+    				$('#'+data.id).parent().remove();
+    			});
+    		})
+    	})	
+    </script>
+  </head>
+  <body>
+    <h1>ARGH, Typing in real time, MATEY!!!</h1>
+    <p>This ain't your grandmother's internet, ya dirty landlubber!</p>
+    <div id='pirates'>
+
+    </div>
+  </body>
+</html>
